@@ -1,7 +1,7 @@
 
 # Dicle Bulut - Data Science & Machine Learning Portfolio
  
-## Executive Summary
+## Summary
 
 I'm a data scientist with hands-on experience in dynamic pricing, demand forecasting, and production ML systems. Alongside my professional work delivering £3M+ in business value through machine learning, optimisation, and AI solutions, I've built these projects to deepen expertise in specific domains: pricing strategy, forecasting, NLP, and geospatial analysis. 
 
@@ -11,20 +11,30 @@ I'm a data scientist with hands-on experience in dynamic pricing, demand forecas
 
 ### 1. Dynamic Pricing with Reinforcement Learning - Uber NYC Data
 
-#### Overview
-![](1-1.png)
-![](2-1.png)
-![](3-1.png)
-![](4-1.png)
-
 **Repository:** [dynamic-pricing-uber-data](https://github.com/diclebulut/dynamic-pricing-uber-data) 
 **Stack:** Python, PyTorch, scikit-learn, RL
+
+#### The Context
+Ride-sharing platforms operate in a dynamic environment where 
+demand, supply, and customer behaviour fluctuate constantly. Understanding how different pricing strategies perform against each other is critical for competitive advantage in this space.
 
 #### The Problem
 Traditional flat-rate pricing leaves money on the table during high-demand periods and turns away customers during low-demand windows. How can dynamic pricing adapt in real-time to optimize revenue while maintaining acceptable acceptance rates?
 
 #### The Solution
 Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optimal price multipliers (0.8x–1.2x) from real Uber trip data, trained against a realistic **sigmoid-based acceptance model** that captures willingness-to-pay dynamics.
+
+#### The Approach
+**Data:** Real NYC Uber data from 2021, incorporating practical factors like trip distance, weather conditions, time of day, neighbourhoods, and customer behaviour signals (Source: Kaggle)
+**Static Approach:** 
+- Learns one optimal price-per-mile from historical data and applies it uniformly across all rides.
+- Models customer acceptance using a price sensitivity curve: the more you deviate from the base fare, the fewer customers accept.
+
+**Dynamic Approach:**
+- Learns context-dependent price multipliers (0.8x–1.2x) for each trip using a 4-layer neural network trained on trip features via experience replay and epsilon-greedy exploration. 
+- Selects the best multiplier from 11 options based on what maximises profit for that specific trip context.
+- Uses the identical sigmoid-based price-sensitivity curve, but implicitly learns which trips tolerate premium pricing
+
 
 #### Technical Highlights
 
@@ -33,7 +43,16 @@ Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optima
 - Calibrated the curve from training data to reflect real-world acceptance thresholds
 - The agent learns that aggressive pricing kills acceptance; conservative pricing leaves revenue on the table
 
-P(accept | p_hat, f) = 1 / (1 + exp((|p_hat - f| - r*f) / (r*f*s)))
+<img width="618" height="176" alt="image" src="https://github.com/user-attachments/assets/7cc49dba-f59d-4872-a2d7-200d1f5ed83a" />
+
+Where:
+- **f:** “actual” fare for the trip
+- **p_hat:** predicted price for the trip (in the DQN env this is computed as p_hat = f  multiplier)
+- **delta (abs(p_hat - f)):** absolute deviation between quote and baseline
+- **r:** max acceptable deviation ratio (default 0.5)
+- **delta_max (r*f):** maximum “acceptable” deviation from the actual fare
+- **s:** sigmoid scaling factor ratio, controls how quickly the acceptance probability drops as proposed price gets farther away from the actual fare (default 0.1)
+
 
 **DQN Architecture & Training:**
 - **4-layer neural network incl. output layer** (256 → 256 → 128 → 11 actions) with experience replay (2,000-sample buffer)
@@ -49,12 +68,12 @@ P(accept | p_hat, f) = 1 / (1 + exp((|p_hat - f| - r*f) / (r*f*s)))
 - **Shared request flags:** proxy for demand intensity at the moment of quote
 
 #### Outcomes of DQN Compared to Static
-Metrics: total revenue, per-ride revenue, acceptance rate, uplift percentage
-- +47.32% increase in revenue
-- +17.95pp acceptance rate
-- +1.8% average price per ride
-- +359 rides accepted
-
+| **Metric** | **Static** | **DQN** | **Change** |
+|----------|----------|----------|----------|
+| Total Revenue | $32,316 | $47,608 | +47.32%|
+| Acceptance Rate | 81.75% | 99.70% | +17.95pp |
+| Avg Price per Ride| $23.46| $23.88 | +1.8% |
+| Accepted Rides | 1,635 | 1,994 | +359 rides |
 ---
 
 ### 2. Flight Delay Prediction - U.S. Domestic Flights 2015
