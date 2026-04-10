@@ -5,11 +5,6 @@
 
 I'm a data scientist with hands-on experience in dynamic pricing, demand forecasting, and production ML systems. Alongside my professional work delivering £3M+ in business value through machine learning, optimisation, and AI solutions, I've built these projects to deepen expertise in specific domains: pricing strategy, forecasting, NLP, and geospatial analysis. 
 
-**Key Strengths:**
-- **Revenue Optimization & Pricing**: Dynamic pricing with RL, consumer willingness-to-pay modelling, A/B testing frameworks
-- **Forecasting & Pattern Discovery**: Temporal dependencies, feature importance driven by domain logic
-- **Production ML**: Config-driven pipelines, logging
-
 ---
 
 ## Projects
