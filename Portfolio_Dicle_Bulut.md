@@ -133,7 +133,7 @@ Built a **forecasting pipeline** with domain-driven feature engineering, systema
 - **Flight records:** 5.8M U.S. domestic flights (2015) from DOT Bureau of Transportation Statistics
 - **Airport metadata:** IATA codes, lat/lon coordinates, city/state mapping for origin/destination enrichment
 - **Aircraft reference:** Tail number - FAA model mapping from SFO registry 
-- **Dual geospatial merge:** Left joins on origin and destination airports to enrich each flight with departure/arrival location attributes
+- **Geospatial merge:** Left joins on origin and destination airports to enrich each flight with departure/arrival location attributes
 
 **Data Cleaning & Sampling:**
 - **Exclusions:** Remove cancelled and diverted flights (focus on completed operations only)
