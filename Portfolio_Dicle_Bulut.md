@@ -1,30 +1,30 @@
 
 # Dicle Bulut - Data Science & Machine Learning Portfolio
  
-## Summary
+# Summary
 
 I'm a data scientist with hands-on experience in dynamic pricing, demand forecasting, and production ML systems. Alongside my professional work delivering £3M+ in business value through machine learning, optimisation, and AI solutions, I've built these projects to deepen expertise in specific domains: pricing strategy, forecasting, NLP, and geospatial analysis. 
 
 ---
 
-## Projects
+# Projects
 
-### 1. Dynamic Pricing with Reinforcement Learning - Uber NYC Data
+## 1. Dynamic Pricing with Reinforcement Learning - Uber NYC Data
 
 **Repository:** [dynamic-pricing-uber-data](https://github.com/diclebulut/dynamic-pricing-uber-data) 
 **Stack:** Python, PyTorch, scikit-learn, RL
 
-#### The Context
+### The Context
 Ride-sharing platforms operate in a dynamic environment where 
 demand, supply, and customer behaviour fluctuate constantly. Understanding how different pricing strategies perform against each other is critical for competitive advantage in this space.
 
-#### The Problem
+### The Problem
 Traditional flat-rate pricing leaves money on the table during high-demand periods and turns away customers during low-demand windows. How can dynamic pricing adapt in real-time to optimize revenue while maintaining acceptable acceptance rates?
 
-#### The Solution
+### The Solution
 Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optimal price multipliers (0.8x–1.2x) from real Uber trip data, trained against a realistic **sigmoid-based acceptance model** that captures willingness-to-pay dynamics.
 
-#### The Approach
+### The Approach
 **Data:** Real NYC Uber data from 2021, incorporating practical factors like trip distance, weather conditions, time of day, neighbourhoods, and customer behaviour signals (Source: Kaggle)
 **Static Approach:** 
 - Learns one optimal price-per-mile from historical data and applies it uniformly across all rides.
@@ -36,7 +36,7 @@ Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optima
 - Uses the identical sigmoid-based price-sensitivity curve, but implicitly learns which trips tolerate premium pricing
 
 
-#### Technical Highlights
+### Technical Highlights
 
 **Willingness-to-Pay Modelling:**
 - Designed a sigmoid-based price acceptance model that maps the absolute deviation between the quoted price and the trip’s baseline (“actual”) fare into an acceptance probability 
@@ -60,14 +60,42 @@ Where:
 - **ε-greedy exploration** with exponential decay (ε₀=1, decay=0.995), forcing systematic exploration early, converging to exploitation
 - **Target network updates** to stabilize Q-value estimation
 
-**Feature Engineering & Domain Logic:**
-- **Trip characteristics:** distance (miles), base fare, tips, wait time, day of month
-- **Geospatial features:** pickup/dropoff borough encoding (Manhattan vs outer boroughs have different congestion profiles)
-- **Temporal features:** time-of-day binning (5 periods capturing rush hour vs. off-peak dynamics)
-- **Weather integration:** precipitation amount and type (affects both demand and acceptance)
-- **Shared request flags:** proxy for demand intensity at the moment of quote
+### Data Ingestion & Pipeline Architecture
 
-#### Outcomes of DQN Compared to Static
+**Data Sources:**
+- **Primary data:** Uber NYC trip records (Parquet format) from January 2021
+- **Weather data:** NYC weather CSV with precipitation measurements and types
+- **Geospatial reference:** NYC Taxi Zone lookup mapping LocationIDs to boroughs
+
+**Ingestion & Cleaning:**
+- Filter to Uber-specific trips (`hvfhs_license_num == "HV0003"`)
+- Remove invalid records (trip_miles > 0)
+- Multi-source merge on temporal (pickup date) and spatial (location IDs) keys
+
+**Feature Engineering & Domain Logic:**
+- **Trip characteristics:** distance (miles), tips, wait time (seconds between request and pickup), day of month
+- **Financial metrics:** final_fare (total customer payment including tolls, taxes, surcharges), uber_profit, profit-per-mile, profit-per-second, driver_final_pay
+- **Geospatial features:** Pickup_Borough and Dropoff_Borough encoding from taxi zone lookup (Manhattan vs outer boroughs have different congestion profiles)
+- **Temporal features:** time_of_day binning (5 periods capturing rush hour vs. off-peak dynamics: night/late/morning/midday/evening)
+- **Weather integration:** precipitation amount and type merged on pickup date (affects both demand and acceptance); missing values filled with 'None'
+- **Behavioral proxy:** wait time (seconds between request and pickup)
+- **Demand signals:** shared_request_flag and shared_match_flag (proxy for demand intensity at the moment of quote)
+- **Dispatch indicators:** out_of_base_dispatch_flag (cross-base assignment signal)
+
+**Model Preparation Pipeline:**
+- **Train/test split:** 80/20 stratification with fixed random seed for reproducibility
+- **Numerical features** (5): trip_miles, tips, wait, day_of_month, precip - StandardScaler normalization (fitted on training data only to prevent leakage)
+- **Categorical features** (6): boroughs, preciptype, time_of_day, shared flags - One-hot encoding with `drop='first'` to avoid multicollinearity
+- **Target variable:** final_fare (amount customer pays)
+
+**Architecture Highlights:**
+- **Modular design:** Separate modules for preprocessing, static pricing, and RL components
+- **Configuration-driven:** All paths, features, and hyperparameters centralized in `config.py`
+- **Reproducibility:** Fixed seeds across NumPy, PyTorch, and Python's random library
+- **Computational scope:** January 1st subset (10,000 rides) for demonstration purposes
+
+
+### Outcomes of DQN Compared to Static
 | **Metric** | **Static** | **DQN** | **Change** |
 |----------|----------|----------|----------|
 | Total Revenue | $32,316 | $47,608 | +47.32%|
@@ -76,30 +104,19 @@ Where:
 | Accepted Rides | 1,635 | 1,994 | +359 rides |
 ---
 
-### 2. Flight Delay Prediction - U.S. Domestic Flights 2015
+## 2. Flight Delay Prediction - U.S. Domestic Flights 2015
 
 **Repository:** [flight-delays](https://github.com/diclebulut/flight-delays) 
 **Stack:** Python, scikit-learn, pandas, GridSearchCV
 
-#### The Problem
+### The Problem
 Airlines must forecast departure delays to optimize operational reliability, gate allocation, and crew scheduling. With 5.8M flights in the dataset and complex interdependencies, statistical forecasting is essential.
 
-#### The Solution
+### The Solution
 Built a **forecasting pipeline** with domain-driven feature engineering, systematically comparing Logistic Regression, Random Forest, and Gradient Boosting. **Random Forest** emerges as the best performer with **AUC 0.73** and CV score **0.74** after hyperparameter tuning and cross-validation.
 
-#### Technical Highlights
-
-**Domain-Driven Feature Engineering:**
-
-- **Features Informed by Business Knowledge:**
-  - `IS_BUSINESS_FLIGHT`: Monday mornings 6–9 AM = corporate travel surge
-  - `IS_HOLIDAY_SEASON`: Months {1, 6–8, 11–12} + July 4th = predictable demand compression
-  - `IS_LEVEL_3_AIRPORT`: JFK, LGA, DCA = slot-controlled FAA Level 3 facilities with capacity constraints
-
-- **Geospatial features:** Airport latitude/longitude encode regional capacity; proximity to congested airspaces
-
-- **Aircraft type:** Tail number to FAA model mapping (turnaround time, gate compatibility, mechanical risk)
-
+### Technical Highlights
+ 
 **Model Development:**
 - **Stratified 5-fold cross-validation:** stratified by the target class (delayed/not-delayed), Airline balance is preserved separately via stratified sampling at the data preparation stage
 - **Three-model comparison:** Logistic Regression (baseline interpretability), Random Forest (non-linearity), Gradient Boosting (best performance)
@@ -110,7 +127,44 @@ Built a **forecasting pipeline** with domain-driven feature engineering, systema
 - **Run logging**: every training serialized to JSON with timestamps, hyperparameters, and metrics for experiment tracking and audit trail
 - **Model persistence**: timestamped `joblib` serialization for versioning
 
-#### Outcomes
+### Data Ingestion & Pipeline Architecture
+
+**Multi-Source Data Integration:**
+- **Flight records:** 5.8M U.S. domestic flights (2015) from DOT Bureau of Transportation Statistics
+- **Airport metadata:** IATA codes, lat/lon coordinates, city/state mapping for origin/destination enrichment
+- **Aircraft reference:** Tail number - FAA model mapping from SFO registry 
+- **Dual geospatial merge:** Left joins on origin and destination airports to enrich each flight with departure/arrival location attributes
+
+**Data Cleaning & Sampling:**
+- **Exclusions:** Remove cancelled and diverted flights (focus on completed operations only)
+- **Stratified sampling by airline:** 5% sample per carrier to preserve airline-specific delay patterns while managing 5.8M record scale
+- **Time format standardization:** Convert HHMM integer format (e.g., 1430) to HH:MM strings, then parse to extract hour/minute features
+
+**Feature Engineering & Domain Logic:**
+
+- **Temporal features:**
+  - Time-of-day extraction (hour/minute) from 6 schedule/actual timestamps (departure, arrival, wheels-off, wheels-on)
+  - Calendar features: quarter, week-of-year, IS_WEEKEND flag
+  - Business intelligence: `IS_BUSINESS_FLIGHT` (Monday 6-9 AM), `IS_HOLIDAY_SEASON` (summer, winter, July 4th)
+
+- **Geospatial features:**
+  - Origin/destination state, city, lat/lon (regional congestion proxy)
+  - `IS_LEVEL_3_AIRPORT`: JFK, LGA, DCA slot-controlled facilities (capacity constraints)
+
+- **Aircraft characteristics:**
+  - Tail number - model mapping (turnaround time, gate compatibility, mechanical risk profiles)
+  - Top-50 categorical encoding for aircraft models (rare models grouped as "Other")
+
+- **Target engineering:**
+  - Binary delay flag: 1 if delay > 15 minutes (industry-standard threshold), else 0
+
+**Model Preparation Pipeline:**
+- **Train/test split:** 80/20 stratified by target (preserves delay rate across splits); airline balance maintained through upstream stratified sampling
+- **ColumnTransformer architecture:**
+  - **Numerical features** (9): distance, hour/minute extracts, day, week - median imputation + StandardScaler
+  - **Categorical features** (7): airline_top, origin_top, destination_top, state_dep_top, state_arr_top, aircraft_model_top - most-frequent imputation + one-hot encoding (handle_unknown='ignore' for production resilience)
+
+### Outcomes
 **Model Comparison:**
 - Logistic Regression: AUC 0.6958 (CV: 0.6892 ± 0.0306)
 - Random Forest: AUC 0.7284 (CV: 0.7360 ± 0.0181) ✓ **Selected**
@@ -124,18 +178,18 @@ Built a **forecasting pipeline** with domain-driven feature engineering, systema
 
 ---
 
-### 3. NLP Text Classification for CBI Economic Intelligence
+## 3. NLP Text Classification for CBI Economic Intelligence
 
 **Repository:** [Primary-Topic-Classifier-Model](https://github.com/diclebulut/Random-Forest-Insights-Primary-Topic-Classifier-Model-with-Supervised-Machine-Learning) 
 **Stack:** Python, spaCy, NLTK, scikit-learn, LexVec embeddings
 
-#### The Problem
+### The Problem
 CBI staff manually read and categorised thousands of business survey anecdotes into 5 topics (Demand Impact, People, Policy, Supply, Other). Manual classification was slow (hours per batch), subjective, and unscalable.
 
-#### The Solution
+### The Solution
 End-to-end NLP pipeline using **LexVec word embeddings (2M words, 300-dim) + Random Forest classifier**, achieving **~90% reduction in processing time**.
 
-#### Technical Highlights
+### Technical Highlights
 
 **NLP Preprocessing:**
 - **Tokenisation & normalisation** via spaCy (`en_core_web_sm`); lowercasing and filtering
@@ -143,7 +197,7 @@ End-to-end NLP pipeline using **LexVec word embeddings (2M words, 300-dim) + Ran
 
 **Word Embedding & Sentence Vectorisation:**
 - **Pre-trained LexVec CommonCrawl embeddings** (300 dimensions), 2M vocabulary
-- **Sentence-level representation:** Average word vectors → single 300-dim vector per anecdote
+- **Sentence-level representation:** Average word vectors - single 300-dim vector per anecdote
   - Simple yet effective; avoids LSTM/Transformer complexity
   - Pre-computed vectors serialised via `pickle`
 
@@ -161,17 +215,17 @@ Note: This section was taken out of the public repository due to IP limitations.
 
 ---
 
-### 4. Earthquake Prediction - Turkey Seismic Analysis (Work In Progress!)
+## 4. Earthquake Prediction - Turkey Seismic Analysis (Work In Progress!)
 
 **Repository:** [earthquake-prediction](https://github.com/diclebulut/earthquake-prediction) | **Stack:** Python, pandas, SciPy, Folium, geospatial analysis, Markov chains (planned)
 
-#### The Problem
+### The Problem
 Earthquakes cluster along known fault lines, but their timing and magnitude are hard to predict. Can historical earthquake + fault geological data reveal temporal and spatial patterns for probabilistic forecasting?
 
-#### The Solution
+### The Solution
 Multi-source data pipeline integrating **Kandilli Observatory earthquake XML feeds** with **GEM Global Active Faults Database (GeoJSON)**, implementing sophisticated **spatial-temporal matching** and building foundation for **Markov chain-based forecasting**.
 
-#### Technical Highlights
+### Technical Highlights
 
 **Data Architecture:**
 - **Earthquake data ingestion:** HTTP download of monthly XML feeds from Boğaziçi University; parsed into structured DataFrames with magnitude (ML scale), lat/lon, depth, location
@@ -195,7 +249,7 @@ A Markov Chain Model is planned for the prediction section of this project for t
 - **Cumulative feedback:** After each earthquake, fault state updates, reflecting stress accumulation/release cycle
 - **Spatial coupling (future):** Extended model to account for stress transfer between neighbouring faults (would require the implementation of inter-fault relations)
 
-#### Domain Insights Leveraged
+### Domain Insights Leveraged
 1. Earthquakes near a fault alter probability of subsequent events on same fault
 2. More recent earthquakes dominate future predictions (temporal recency weighting)
 3. Stress can cascade to neighbouring faults (spatial Markov chains)
