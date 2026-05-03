@@ -72,6 +72,10 @@ Where:
 - **ε-greedy exploration** with exponential decay (ε₀=1, decay=0.995), forcing systematic exploration early, converging to exploitation
 - **Target network updates** to stabilize Q-value estimation
 
+### Comments Received
+
+Feedback from a former Uber pricing practitioner indicated that the project’s willingness-to-pay / acceptance modelling is broadly consistent with industry approaches used in ride-hailing pricing, and that the core intuition around the price–demand tradeoff matches real-world practice.
+
 ### Data Ingestion & Pipeline Architecture
 
 **Data Sources:**
@@ -281,6 +285,12 @@ Multi-source data pipeline integrating **Kandilli Observatory earthquake XML fee
 **Analytical Outputs:**
 - **Per-fault statistics:** Event counts, magnitude distributions, temporal trends for each fault
 - **Interactive visualisation:** Folium maps with magnitude-coloured markers, fault overlays, clustering, per-catalog toggles
+
+
+| Map                           | Tooltip                          |
+| ----------------------------------- | ----------------------------------- |
+| <img width="550" height="464" alt="image" src="https://github.com/user-attachments/assets/042b1442-4525-4713-9b83-8597e508f4af" />| <img width="556" height="468" alt="image" src="https://github.com/user-attachments/assets/51621812-9746-4727-8a4e-93602869d414" />|
+
 
 **Foundation for Markov Chain Model:**
 A Markov Chain Model is planned for the prediction section of this project for the following reasons:
