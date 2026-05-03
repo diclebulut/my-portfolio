@@ -43,7 +43,7 @@ Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optima
 - **Supervised demand modelling + optimisation (e.g., XGBoost to estimate P(accept|x, price) then choose argmax profit):** interpretable and a strong tabular baseline, but depends on having sufficient historical price variation to learn counterfactual price sensitivity reliably.
 - **Continuous-control RL (DDPG/TD3/SAC) or actor–critic methods (PPO):** enable fully continuous price multipliers, but add substantial complexity and tuning sensitivity compared to discrete-action value learning.
 
-**Selecting DQN - Reasoning:**
+**Choosing DQN - Reasoning:**
 - **RL baseline:** DQN is a standard, well-understood method with a relatively straightforward setup. It’s a practical way to test whether an RL policy can beat static pricing without over-engineering the first version.
 - **Lower complexity than continuous-action RL:** Methods like SAC/TD3/DDPG are strong choices for truly continuous pricing, but they introduce extra moving parts (actor–critic design, exploration noise, more tuning). For this project, DQN reached a working, comparable result faster.
 - **Next steps:** If this were taken further, the same setup could be extended to continuous multipliers (SAC/TD3).
@@ -135,6 +135,26 @@ Airlines must forecast departure delays to optimize operational reliability, gat
 
 ### The Solution
 Built a **forecasting pipeline** with domain-driven feature engineering, systematically comparing Logistic Regression, Random Forest, and Gradient Boosting. **Random Forest** emerges as the best performer with **AUC 0.73** and CV score **0.74** after hyperparameter tuning and cross-validation.
+
+### Model Choice
+
+**Alternative candidates considered:**
+- **Regularised Logistic Regression (baseline):** fast to train, easy to explain. Limitation: it misses non-linear effects and interactions (e.g., airport × airline × time-of-day patterns).
+- **Gradient Boosting (XGBoost / LightGBM / CatBoost):** frequently the strongest family for tabular prediction because it captures interactions effectively. Tradeoff: higher tuning effort and greater sensitivity to hyperparameters.
+- **Neural networks (MLP):** an MLP (multi-layer perceptron) is a feed-forward neural network for tabular features. It can model non-linearities, but typically requires time-consuming regularisation and tuning to match strong tree ensembles on structured data, and is harder to interpret.
+- **Time-series / forecasting approaches:** useful where delays are driven mainly by temporal dependence (e.g., knock-on effects during the day). Limitation: flight delay risk is also strongly context-dependent (route, carrier, airport, calendar features), so time-series methods alone may miss that.
+- **Regression formulation (predict minutes delayed):** provides a richer output than classification, but the target can be heavy-tailed and noisy, and it complicates threshold-based decisions such as “delay > 15 minutes”, which is a standard used across airlines.
+
+**Choosing Random Forest - Reasoning:**
+- **Captures non-linear structure with minimal assumptions:** it models interactions between categorical and numerical drivers without requiring a strictly linear relationship between features and delay risk.
+- **Strong tabular baseline:** Random Forest is a reliable benchmark for structured data and performed well under the same cross-validation setup used for model comparison.
+- **Suitable for mixed feature types after encoding:** it can utilise the combination of calendar variables, route/airport signals, and airline/aircraft indicators effectively.
+
+**Operational Relevance and Metrics:**
+In operational planning (staffing, gate allocation, turnaround buffers), the practical value often depends on the chosen decision threshold and the resulting precision/recall tradeoff, not only AUC.
+
+**Time/compute caveat:**
+Random Forest can be computationally expensive at this scale, and iteration time becomes a constraint when running repeated cross-validation and tuning. Gradient Boosting remains an important alternative for this reason.
 
 ### Technical Highlights
  
