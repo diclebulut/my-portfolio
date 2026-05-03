@@ -291,7 +291,7 @@ Multi-source data pipeline integrating **Kandilli Observatory earthquake XML fee
 | ----------------------------------- | ----------------------------------- |
 | <img width="550" height="464" alt="image" src="https://github.com/user-attachments/assets/042b1442-4525-4713-9b83-8597e508f4af" />| <img width="556" height="468" alt="image" src="https://github.com/user-attachments/assets/51621812-9746-4727-8a4e-93602869d414" />|
 
-
+### Future Work
 **Foundation for Markov Chain Model:**
 A Markov Chain Model is planned for the prediction section of this project for the following reasons:
 
@@ -299,6 +299,14 @@ A Markov Chain Model is planned for the prediction section of this project for t
 - **Transition probabilities:** Estimated from historical catalogue; weighted by recency (recent earthquakes have stronger influence on future probability)
 - **Cumulative feedback:** After each earthquake, fault state updates, reflecting stress accumulation/release cycle
 - **Spatial coupling (future):** Extended model to account for stress transfer between neighbouring faults (would require the implementation of inter-fault relations)
+
+### Backtesting & Validation
+
+- **Walk-forward backtesting (time splits):** fit/derive model inputs using events up to time *t*, generate forecasts for *(t, t+Δ]*, then roll the window forward. Avoids information leakage.
+- **Define the prediction target:** e.g., probability of ≥1 event above a magnitude threshold within a region/fault proximity band over the next *Δ* days/weeks (or an intensity/rate forecast).
+- **Compare against simple baselines:** historical average rate, recency-weighted rate, and persistence baselines to quantify incremental value.
+- **Use rare-event metrics:** precision/recall at decision thresholds, calibration of predicted probabilities, and lead-time vs hit-rate tradeoffs (rather than accuracy).
+- **Robustness checks:** sensitivity to magnitude cutoffs, horizon length *Δ*, spatial binning choices, and optional declustering (aftershock handling).
 
 ### Domain Insights Leveraged
 1. Earthquakes near a fault alter probability of subsequent events on same fault
