@@ -26,6 +26,7 @@ Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optima
 
 ### The Approach
 **Data:** Real NYC Uber data from 2021, incorporating practical factors like trip distance, weather conditions, time of day, neighbourhoods, and customer behaviour signals (Source: Kaggle)
+
 **Static Approach:** 
 - Learns one optimal price-per-mile from historical data and applies it uniformly across all rides.
 - Models customer acceptance using a price sensitivity curve: the more you deviate from the base fare, the fewer customers accept.
@@ -35,6 +36,17 @@ Built a **Deep Q-Network (DQN) reinforcement learning agent** that learns optima
 - Selects the best multiplier from 11 options based on what maximises profit for that specific trip context.
 - Uses the identical sigmoid-based price-sensitivity curve, but implicitly learns which trips tolerate premium pricing
 
+### Model Choice
+
+**Alternative candidates considered:**
+- **Contextual bandits (LinUCB / Thompson Sampling):** strong for one-step price selection and often more sample-efficient, but primarily optimizes immediate reward and does not naturally extend to sequential effects (e.g., demand feedback, churn, driver supply response).
+- **Supervised demand modelling + optimisation (e.g., XGBoost to estimate P(accept|x, price) then choose argmax profit):** interpretable and a strong tabular baseline, but depends on having sufficient historical price variation to learn counterfactual price sensitivity reliably.
+- **Continuous-control RL (DDPG/TD3/SAC) or actor–critic methods (PPO):** enable fully continuous price multipliers, but add substantial complexity and tuning sensitivity compared to discrete-action value learning.
+
+**Selecting DQN - Reasoning:**
+- **RL baseline:** DQN is a standard, well-understood method with a relatively straightforward setup. It’s a practical way to test whether an RL policy can beat static pricing without over-engineering the first version.
+- **Lower complexity than continuous-action RL:** Methods like SAC/TD3/DDPG are strong choices for truly continuous pricing, but they introduce extra moving parts (actor–critic design, exploration noise, more tuning). For this project, DQN reached a working, comparable result faster.
+- **Next steps:** If this were taken further, the same setup could be extended to continuous multipliers (SAC/TD3).
 
 ### Technical Highlights
 
@@ -102,6 +114,15 @@ Where:
 | Acceptance Rate | 81.75% | 99.70% | +17.95pp |
 | Avg Price per Ride| $23.46| $23.88 | +1.8% |
 | Accepted Rides | 1,635 | 1,994 | +359 rides |
+
+### Next Steps
+- SAC vs DQN implementation.
+- Reward function: It is aggressive, it cuts prices off at x1.2 multiplier. A continuous curve can be applied.
+- The model tries to assign a passenger fare to each state. Reward function could be made more complex with profit and cost information.
+- Features in reward function: another model can be layered on top of this to give the agent more information about how to reward presence of some features e.g. rain.
+- More test consistency by 1-to-1 match between static and DQN test sets.
+- Applying this approach to the driver side pay offering.
+
 ---
 
 ## 2. Flight Delay Prediction - U.S. Domestic Flights 2015
